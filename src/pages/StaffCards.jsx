@@ -1,41 +1,19 @@
-// //src/pages/StaffCards.jsx
+// // src/pages/StaffCards.jsx
+// import { useState } from "react";
+// import AdminLayout from "../components/layout/AdminLayout";
 // import CardTabs from "../components/CardTabs";
 // import StaffCard from "../components/StaffCard";
 // import CardPlaceholder from "../components/CardPlaceholder";
-// import AdminLayout from "../components/layout/AdminLayout";
-// import { useState, useEffect } from "react";
-// import api from "../api/axios";
+
+// const mockAssigned = [
+//   { id: 1, name: "Rahul Sharma", role: "UI Designer", location: "Bangalore", avatar: "https://i.pravatar.cc/150?img=32" },
+//   { id: 2, name: "Priya Menon", role: "Marketing Lead", location: "Mumbai", avatar: "https://i.pravatar.cc/150?img=44" },
+//   { id: 3, name: "Vikram Singh", role: "Product Manager", location: "Delhi", avatar: "https://i.pravatar.cc/150?img=68" },
+// ];
 
 // export default function StaffCards() {
 //   const [activeTab, setActiveTab] = useState("assigned");
-
-//   // const cards = Array.from({ length: 100 }).map((_, i) => ({
-//   //   id: i,
-//   //   assigned: i < 42,
-//   //   employee:
-//   //     i < 42
-//   //       ? {
-//   //           name: `Staff ${i + 1}`,
-//   //           role: "Product Designer",
-//   //           location: "Los Angeles, CA",
-//   //           avatar: `https://i.pravatar.cc/150?img=${i + 5}`,
-//   //         }
-//   //       : null,
-//   // }));
-
-//   const [assigned, setAssigned] = useState([]);
-//   // const [unassignedCount, setUnassignedCount] = useState(0);
-//   const [remainingSlots, setRemainingSlots] = useState(0);
-//   // const assigned = cards.filter((c) => c.assigned);
-//   // const unassigned = cards.filter((c) => !c.assigned);
-
-//   useEffect(() => {
-//     api.get("/staff-cards").then((res) => {
-//       const data = res.data.data;
-//       setAssigned(data.assigned_cards);
-//       setRemainingSlots(data.remaining_slots);
-//     });
-//   }, []);
+//   const remainingSlots = 7;
 
 //   return (
 //     <AdminLayout>
@@ -44,46 +22,61 @@
 //           active={activeTab}
 //           setActive={setActiveTab}
 //           counts={{
-//             assigned: assigned.length,
+//             assigned: mockAssigned.length,
 //             unassigned: remainingSlots,
 //           }}
 //         />
 
-//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
 //           {activeTab === "assigned" &&
-//             assigned.map((card) => (
-//               <StaffCard key={card.id} employee={card.employee} />
-//             ))}
+//             mockAssigned.map((emp) => <StaffCard key={emp.id} employee={emp} />)}
 
 //           {activeTab === "unassigned" &&
-//             Array.from({ length: remainingSlots }).map((_, index) => (
-//               <CardPlaceholder
-//                 key={index}
-//                 isAdd
-//                 onAssign={() => navigate("/staff-cards/create")}
-//               />
+//             Array.from({ length: remainingSlots }).map((_, i) => (
+//               <CardPlaceholder key={i} />
 //             ))}
 //         </div>
 //       </div>
 //     </AdminLayout>
 //   );
 // }
+
 // src/pages/StaffCards.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "../components/layout/AdminLayout";
 import CardTabs from "../components/CardTabs";
 import StaffCard from "../components/StaffCard";
 import CardPlaceholder from "../components/CardPlaceholder";
-
-const mockAssigned = [
-  { id: 1, name: "Rahul Sharma", role: "UI Designer", location: "Bangalore", avatar: "https://i.pravatar.cc/150?img=32" },
-  { id: 2, name: "Priya Menon", role: "Marketing Lead", location: "Mumbai", avatar: "https://i.pravatar.cc/150?img=44" },
-  { id: 3, name: "Vikram Singh", role: "Product Manager", location: "Delhi", avatar: "https://i.pravatar.cc/150?img=68" },
-];
+import api from "../api/axios";
 
 export default function StaffCards() {
   const [activeTab, setActiveTab] = useState("assigned");
-  const remainingSlots = 7;
+  const [assignedStaff, setAssignedStaff] = useState([]);
+  const [remainingSlots, setRemainingSlots] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  /* ================= FETCH DATA ================= */
+
+  useEffect(() => {
+    fetchStaffCards();
+  }, []);
+
+  const fetchStaffCards = async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.get("/orginazation-dashboard/staff-cardss");
+
+      setAssignedStaff(res.data.data.assigned || []);
+      setRemainingSlots(res.data.data.remaining_slots || 0);
+    } catch (error) {
+      console.error("Failed to load staff cards");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= RENDER ================= */
 
   return (
     <AdminLayout>
@@ -92,20 +85,37 @@ export default function StaffCards() {
           active={activeTab}
           setActive={setActiveTab}
           counts={{
-            assigned: mockAssigned.length,
+            assigned: assignedStaff.length,
             unassigned: remainingSlots,
           }}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
-          {activeTab === "assigned" &&
-            mockAssigned.map((emp) => <StaffCard key={emp.id} employee={emp} />)}
+        {loading ? (
+          <div className="mt-6 text-center text-gray-500">
+            Loading staff cards...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
+            {activeTab === "assigned" &&
+              assignedStaff.map((emp) => (
+                <StaffCard
+                  key={emp.id}
+                  employee={{
+                    id: emp.id,
+                    name: emp.name,
+                    role: emp.designation,
+                    location: emp.location,
+                    avatar: emp.profile_image_url,
+                  }}
+                />
+              ))}
 
-          {activeTab === "unassigned" &&
-            Array.from({ length: remainingSlots }).map((_, i) => (
-              <CardPlaceholder key={i} />
-            ))}
-        </div>
+            {activeTab === "unassigned" &&
+              Array.from({ length: remainingSlots }).map((_, i) => (
+                <CardPlaceholder key={i} />
+              ))}
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

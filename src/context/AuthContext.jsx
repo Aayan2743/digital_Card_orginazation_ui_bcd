@@ -1,55 +1,76 @@
+// // export const useAuth = () => useContext(AuthContext);
+
 // // src/context/AuthContext.jsx
 // import { createContext, useContext, useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
+// import api from "../api/axios";
 
 // const AuthContext = createContext();
 
-// const mockUser = {
-//   id: 1,
-//   name: "Admin User",
-//   email: "admin@onedesk.com",
-//   role: "employeer",
-//   organization: { name: "OneDesk Technologies" },
-// };
-
-// const mockBrand = {
-//   brand_name: "OneDesk",
-//   logo: "https://via.placeholder.com/80?text=OneDesk",
-//   cover_page: "https://picsum.photos/1400/400",
-// };
-
 // export function AuthProvider({ children }) {
 //   const navigate = useNavigate();
+
 //   const [user, setUser] = useState(null);
 //   const [brand, setBrand] = useState(null);
 //   const [loading, setLoading] = useState(true);
 
+//   /* ─────────────────────────────────────────────
+//      LOAD USER ON PAGE REFRESH
+//   ───────────────────────────────────────────── */
+
 //   useEffect(() => {
-//     // Simulate loading from localStorage or just mock login
-//     const stored = localStorage.getItem("mock_auth");
-//     if (stored) {
-//       setUser(mockUser);
-//       setBrand(mockBrand);
+//     const token = localStorage.getItem("token");
+
+//     if (!token) {
+//       setLoading(false);
+//       return;
 //     }
-//     setLoading(false);
+
+//     api
+//       .get("/orginazation-dashboard/profile") // must match backend
+//       .then((res) => {
+//         const userData = res.data.user;
+
+//         setUser(userData); // ✅ IMPORTANT
+//         setBrand(userData.organization || null);
+//       })
+//       .catch(() => {
+//         localStorage.removeItem("token");
+//         setUser(null);
+//       })
+//       .finally(() => {
+//         setLoading(false);
+//       });
 //   }, []);
 
-//   const login = ({ role = "admin" }) => {
-//     localStorage.setItem("mock_auth", "true");
-//     setUser(mockUser);
-//     setBrand(mockBrand);
+//   /* ─────────────────────────────────────────────
+//      LOGIN (Called From Login.jsx)
+//   ───────────────────────────────────────────── */
 
-//     if (role === "admin") {
+//   const login = (userData, token) => {
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("user", JSON.stringify(userData));
+
+//     setUser(userData);
+
+//     if (userData.role === "employeer") {
 //       navigate("/", { replace: true });
 //     } else {
 //       navigate("/user/my-card", { replace: true });
 //     }
 //   };
 
+//   /* ─────────────────────────────────────────────
+//      LOGOUT
+//   ───────────────────────────────────────────── */
+
 //   const logout = () => {
-//     localStorage.removeItem("mock_auth");
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("user");
+
 //     setUser(null);
 //     setBrand(null);
+
 //     navigate("/login", { replace: true });
 //   };
 
@@ -77,6 +98,7 @@
 // export const useAuth = () => useContext(AuthContext);
 
 // src/context/AuthContext.jsx
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -91,9 +113,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   /* ─────────────────────────────────────────────
-     LOAD USER ON PAGE REFRESH
+     LOAD USER + BRAND ON REFRESH
   ───────────────────────────────────────────── */
-
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -102,32 +123,38 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    api
-      .get("/profile") // make sure you have this API
-      .then((res) => {
-        const userData = res.data.user;
+    const init = async () => {
+      try {
+        // 1️⃣ Get profile
+        const profileRes = await api.get("/orginazation-dashboard/profile");
 
+        const userData = profileRes.data.user;
         setUser(userData);
 
-        // optional brand
-        setBrand(userData.organization || null);
-      })
-      .catch(() => {
+        // 2️⃣ Get brand separately
+        try {
+          const brandRes = await api.get("/orginazation-dashboard/brand");
+          setBrand(brandRes.data.data);
+        } catch {
+          setBrand(null);
+        }
+      } catch (error) {
         localStorage.removeItem("token");
         setUser(null);
-      })
-      .finally(() => {
+        setBrand(null);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    init();
   }, []);
 
   /* ─────────────────────────────────────────────
-     LOGIN (Called From Login.jsx)
+     LOGIN
   ───────────────────────────────────────────── */
-
   const login = (userData, token) => {
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
 
     setUser(userData);
 
@@ -141,10 +168,8 @@ export function AuthProvider({ children }) {
   /* ─────────────────────────────────────────────
      LOGOUT
   ───────────────────────────────────────────── */
-
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
 
     setUser(null);
     setBrand(null);
@@ -152,8 +177,39 @@ export function AuthProvider({ children }) {
     navigate("/login", { replace: true });
   };
 
-  const updateBrand = (newBrand) => {
-    setBrand((prev) => ({ ...prev, ...newBrand }));
+  /* ─────────────────────────────────────────────
+     UPDATE BRAND (API CONNECTED)
+  ───────────────────────────────────────────── */
+  const updateBrand = async (formData) => {
+    try {
+      const res = await api.post(
+        "/orginazation-dashboard/brand/update",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      setBrand(res.data.data);
+
+      return res.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  };
+
+  /* ─────────────────────────────────────────────
+     REFRESH BRAND MANUALLY
+  ───────────────────────────────────────────── */
+  const refreshBrand = async () => {
+    try {
+      const res = await api.get("/orginazation-dashboard/brand");
+      setBrand(res.data.data);
+    } catch {
+      setBrand(null);
+    }
   };
 
   return (
@@ -164,6 +220,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         updateBrand,
+        refreshBrand,
         loading,
         isAuthenticated: !!user,
       }}

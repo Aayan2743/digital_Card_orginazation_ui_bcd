@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { successAlert, errorAlert } from "../../utils/alert";
-
+import api from "../../api/axios";
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -35,8 +35,10 @@ export default function Login() {
         role: role === "admin" ? "employeer" : "employee",
       });
 
-      const { token, user } = res.data;
+      const token = res.data.token;
+      const user = res.data.user;
 
+      console.log("token", token);
       // Save token
       localStorage.setItem("token", token);
 
@@ -44,7 +46,7 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(user));
 
       // Update auth context
-      login(user);
+      login(user, token);
 
       successAlert("Welcome", `Hello ${user.name}`);
 
@@ -57,7 +59,8 @@ export default function Login() {
     } catch (error) {
       console.log(error);
 
-      const message = error.response?.data?.message || "Invalid credentials";
+      const message =
+        error.response?.data?.message || "Invalid credentials fggfgfg";
 
       errorAlert("Login Failed", message);
     } finally {
