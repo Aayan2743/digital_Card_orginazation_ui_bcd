@@ -28,6 +28,7 @@ import StaffMeetingCalendar from "../components/StaffMeetingCalendar";
 import ScanContactUI from "../components/ScanContactUI";
 import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
+import StaffCardPreviewPage from "../pages/organizations/StaffCardPreviewPage";
 
 export default function AdminRoutes() {
   return (
@@ -64,8 +65,17 @@ export default function AdminRoutes() {
         }
       />
 
-      <Route
+      {/* <Route
         path="/edit-staff-cards"
+        element={
+          <ProtectedRoute>
+            <StaffCardEditForm />
+          </ProtectedRoute>
+        }
+      /> */}
+
+      <Route
+        path="/edit-staff-cards/:id"
         element={
           <ProtectedRoute>
             <StaffCardEditForm />
@@ -164,10 +174,11 @@ export default function AdminRoutes() {
       />
 
       <Route
-        path="/card-preview"
+        path="/card-preview/:id"
         element={
           <ProtectedRoute>
-            <CardPreview />
+            {/* <CardPreview /> */}
+            <StaffCardPreviewPage />
           </ProtectedRoute>
         }
       />

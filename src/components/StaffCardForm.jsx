@@ -20,7 +20,12 @@ export default function StaffCardForm() {
     cover_image: null,
     brochures: [], // { file, name }
     community_images: [], // { file, name }
-    socials: {},
+    socials: {
+      linkedin: "",
+      instagram: "",
+      facebook: "",
+      youtube: "",
+    },
   });
 
   const [profilePreview, setProfilePreview] = useState(null);
@@ -198,6 +203,10 @@ export default function StaffCardForm() {
       formData.append("website", form.website || "");
       formData.append("company_name", form.company_name || "");
       formData.append("company_email", form.company_email || "");
+      formData.append("linkedin", form.socials.linkedin || "");
+      formData.append("instagram", form.socials.instagram || "");
+      formData.append("facebook", form.socials.facebook || "");
+      formData.append("youtube", form.socials.youtube || "");
 
       /* ================= SERVICES ================= */
       form.services.forEach((service) => {
@@ -251,7 +260,12 @@ export default function StaffCardForm() {
         cover_image: null,
         brochures: [],
         community_images: [],
-        socials: {},
+        socials: {
+          linkedin: "",
+          instagram: "",
+          facebook: "",
+          youtube: "",
+        },
       });
 
       setProfilePreview(null);
@@ -472,6 +486,56 @@ export default function StaffCardForm() {
                 onChange={handleServicesChange}
               />
             </FormSection>
+            {/* SOCIAL MEDIA */}
+            <FormSection title="Social Media">
+              <Input
+                name="linkedin"
+                label="LinkedIn URL"
+                value={form.socials.linkedin}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    socials: { ...form.socials, linkedin: e.target.value },
+                  })
+                }
+              />
+
+              <Input
+                name="instagram"
+                label="Instagram URL"
+                value={form.socials.instagram}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    socials: { ...form.socials, instagram: e.target.value },
+                  })
+                }
+              />
+
+              <Input
+                name="facebook"
+                label="Facebook URL"
+                value={form.socials.facebook}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    socials: { ...form.socials, facebook: e.target.value },
+                  })
+                }
+              />
+
+              <Input
+                name="youtube"
+                label="YouTube URL"
+                value={form.socials.youtube}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    socials: { ...form.socials, youtube: e.target.value },
+                  })
+                }
+              />
+            </FormSection>
           </div>
 
           {/* FOOTER */}
@@ -580,6 +644,29 @@ export default function StaffCardForm() {
                   ))}
                 </>
               )}
+
+              {(form.socials.linkedin ||
+                form.socials.instagram ||
+                form.socials.facebook ||
+                form.socials.youtube) && (
+                <>
+                  <Divider />
+                  <div className="flex gap-4">
+                    {form.socials.linkedin && (
+                      <SocialIcon url={form.socials.linkedin} label="in" />
+                    )}
+                    {form.socials.instagram && (
+                      <SocialIcon url={form.socials.instagram} label="📸" />
+                    )}
+                    {form.socials.facebook && (
+                      <SocialIcon url={form.socials.facebook} label="f" />
+                    )}
+                    {form.socials.youtube && (
+                      <SocialIcon url={form.socials.youtube} label="▶" />
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -589,6 +676,19 @@ export default function StaffCardForm() {
 }
 
 /* ================= HELPERS (unchanged) ================= */
+
+function SocialIcon({ url, label }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold hover:scale-105 transition"
+    >
+      {label}
+    </a>
+  );
+}
 
 function FormSection({ title, subtitle, children }) {
   return (

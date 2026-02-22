@@ -103,8 +103,10 @@ export default function StaffCards() {
                   employee={{
                     id: emp.id,
                     name: emp.name,
+                    staff_card_id: emp.staff_card_id,
                     role: emp.designation,
                     location: emp.location,
+                    exp: emp.expires_at,
                     avatar: emp.profile_image_url,
                   }}
                 />
