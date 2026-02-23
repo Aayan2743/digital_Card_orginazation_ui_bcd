@@ -29,6 +29,8 @@ import ScanContactUI from "../components/ScanContactUI";
 import ForgotPassword from "../pages/auth/forgot-password";
 import ResetPassword from "../pages/auth/reset-password";
 import StaffCardPreviewPage from "../pages/organizations/StaffCardPreviewPage";
+import MyStaffCard from "../pages/organizations/MyStaffCard";
+import StaffEditForm from "../components/StaffEditForm";
 
 export default function AdminRoutes() {
   return (
@@ -100,7 +102,8 @@ export default function AdminRoutes() {
           <ProtectedRoute>
             {/* <MyCard /> */}
 
-            <UserCardPreview />
+            {/* <UserCardPreview /> */}
+            <MyStaffCard />
           </ProtectedRoute>
         }
       />
@@ -122,7 +125,8 @@ export default function AdminRoutes() {
           <ProtectedRoute>
             {/* <MyCard /> */}
 
-            <UserStaffCardEditForm />
+            {/* <UserStaffCardEditForm /> */}
+            <StaffEditForm />
           </ProtectedRoute>
         }
       />
@@ -174,7 +178,8 @@ export default function AdminRoutes() {
       />
 
       <Route
-        path="/card-preview/:id"
+        // path="/card-preview/:id"
+        path="/:orgSlug/:id"
         element={
           <ProtectedRoute>
             {/* <CardPreview /> */}
@@ -182,6 +187,8 @@ export default function AdminRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* <Route path="/:orgSlug" element={<CardPreview />} /> */}
 
       <Route
         path="/organizations/cards/:cardId/view"
