@@ -1,4 +1,5 @@
 // src/pages/dashboard/Dashboard.jsx
+import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import {
   LineChart,
@@ -11,35 +12,54 @@ import {
 } from "recharts";
 import { useAuth } from "../../context/AuthContext";
 
-/* ================= MOCK DATA ================= */
-const mockStats = [
-  {
-    title: "Total Employees",
-    value: 42,
-    color: "from-indigo-500 to-indigo-600",
-  },
-  {
-    title: "Active Employees",
-    value: 38,
-    color: "from-emerald-500 to-emerald-600",
-  },
-  { title: "Cards Issued", value: 42, color: "from-purple-500 to-purple-600" },
-  { title: "Expiring Soon", value: 3, color: "from-pink-500 to-pink-600" },
-];
-
-const mockChartData = [
-  { month: "Jan", employees: 5 },
-  { month: "Feb", employees: 10 },
-  { month: "Mar", employees: 18 },
-  { month: "Apr", employees: 25 },
-  { month: "May", employees: 35 },
-  { month: "Jun", employees: 42 },
-  { month: "Jul", employees: 48 },
-  { month: "Aug", employees: 55 },
-];
+import api from "../../api/axios";
 
 export default function OrganizationDashboard() {
   const { user, brand } = useAuth();
+  const [stats, setStats] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  useEffect(() => {
+    if (user?.organization_id) {
+      fetchDashboard();
+    }
+  }, [user]);
+
+  const fetchDashboard = async () => {
+    try {
+      const res = await api.get(`/orginazation-dashboard/`);
+
+      const response = res.data.data; // IMPORTANT (your API structure)
+
+      // KPI Cards
+      setStats([
+        {
+          title: "Total Cards",
+          value: response.stats.total_cards,
+          color: "from-indigo-500 to-indigo-600",
+        },
+        {
+          title: "Active Cards",
+          value: response.stats.active_cards,
+          color: "from-emerald-500 to-emerald-600",
+        },
+        {
+          title: "Allocated Cards",
+          value: response.stats.allocated,
+          color: "from-purple-500 to-purple-600",
+        },
+        {
+          title: "Not Allocated",
+          value: response.stats.NotAllocated,
+          color: "from-pink-500 to-pink-600",
+        },
+      ]);
+
+      // Chart
+      setChartData(response.chart);
+    } catch (error) {
+      console.error("Dashboard error:", error);
+    }
+  };
 
   const orgName = brand?.brand_name || "OneDesk Technologies";
   const orgEmail = user?.email || "admin@onedesk.com";
@@ -113,7 +133,7 @@ export default function OrganizationDashboard() {
 
         {/* ================= KPI CARDS ================= */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {mockStats.map((item) => (
+          {stats.map((item) => (
             <div
               key={item.title}
               className={`bg-gradient-to-br ${item.color} rounded-2xl p-6 text-white shadow-lg hover:scale-[1.02] transition`}
@@ -128,13 +148,13 @@ export default function OrganizationDashboard() {
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-20">
           <div className="flex justify-between mb-6">
             <h3 className="text-xl font-semibold text-slate-800">
-              Employee Growth Trend
+              Card Growth Trend
             </h3>
             <span className="text-sm text-slate-500">Last 8 months</span>
           </div>
 
           <ResponsiveContainer width="100%" height={340}>
-            <LineChart data={mockChartData}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
                 dataKey="month"
@@ -145,7 +165,7 @@ export default function OrganizationDashboard() {
               <Tooltip />
               <Line
                 type="monotone"
-                dataKey="employees"
+                dataKey="cards"
                 stroke="#6366f1"
                 strokeWidth={3}
                 dot={{ r: 5 }}
